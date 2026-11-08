@@ -1,0 +1,22 @@
+{
+  "schemaVersion": "0.1.0-draft.1",
+  "plugin": {
+    "id": "示例.工具/核心@1",
+    "version": "not-semver-but-non-empty"
+  },
+  "capabilities": {
+    "required": [
+      "团队.能力",
+      "a b c",
+      "x/y"
+    ],
+    "optional": []
+  },
+  "resources": [
+    {
+      "kind": "service",
+      "name": "服务:主要",
+      "scope": "shared"
+    }
+  ]
+}

@@ -1,0 +1,11 @@
+{
+  "plugin": {
+    "id": "example.demo",
+    "version": "1.0.0"
+  },
+  "capabilities": {
+    "required": [],
+    "optional": []
+  },
+  "resources": []
+}

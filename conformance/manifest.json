@@ -1,0 +1,466 @@
+{
+  "_comment": "Expected outcomes for the sibling .json declaration files in this directory. Each file is a bare declaration (no wrapper). For negative vectors the {code,path} pairs listed must be produced EXACTLY (order-insensitive; extra or missing issues fail). For positive vectors the declaration must validate with zero issues. structural/ lists raw JSON texts evaluated after JSON.parse.",
+  "protocolVersion": "0.1.0-draft.1",
+  "positive": {
+    "01-minimal-tool.json": {
+      "name": "minimal-tool",
+      "doc": "Smallest accepted declaration: empty capability lists and an explicit empty resources array."
+    },
+    "02-with-capabilities-and-resources.json": {
+      "name": "capabilities-and-resources",
+      "doc": "Non-empty capability lists plus one tool and one service claim; version deliberately uses a pre-release/build spelling that this protocol does not parse."
+    },
+    "03-free-form-scope-labels.json": {
+      "name": "free-form-scope-labels",
+      "doc": "scope is any static label without leading or trailing whitespace: 'plugin', 'agent' and 'per-session' are equally opaque to this protocol."
+    },
+    "04-same-name-different-kind-or-scope.json": {
+      "name": "same-name-different-kind-or-scope",
+      "doc": "Duplicate detection is by (kind,name,scope); sharing a name across kinds or scopes is allowed."
+    },
+    "05-unicode-and-punctuation-names.json": {
+      "name": "unicode-and-punctuation-names",
+      "doc": "Identifiers are opaque non-empty strings; no character class is imposed beyond the whitespace/control rules."
+    },
+    "06-empty-parts-with-empty-lists.json": {
+      "name": "empty-parts-with-empty-lists",
+      "doc": "Single-character identifiers and explicit empty arrays are accepted."
+    }
+  },
+  "negative": {
+    "01-not-an-object.json": {
+      "name": "01-not-an-object",
+      "valid": false,
+      "issues": [
+        {
+          "code": "TYPE_MISMATCH",
+          "path": ""
+        }
+      ]
+    },
+    "02-schema-version-mismatch.json": {
+      "name": "02-schema-version-mismatch",
+      "valid": false,
+      "issues": [
+        {
+          "code": "INVALID_VALUE",
+          "path": "schemaVersion"
+        }
+      ]
+    },
+    "03-schema-version-missing.json": {
+      "name": "03-schema-version-missing",
+      "valid": false,
+      "issues": [
+        {
+          "code": "MISSING_FIELD",
+          "path": "schemaVersion"
+        }
+      ]
+    },
+    "04-unknown-root-field.json": {
+      "name": "04-unknown-root-field",
+      "valid": false,
+      "issues": [
+        {
+          "code": "UNKNOWN_FIELD",
+          "path": "extra"
+        },
+        {
+          "code": "UNKNOWN_FIELD",
+          "path": "extra2"
+        }
+      ]
+    },
+    "05-plugin-id-empty.json": {
+      "name": "05-plugin-id-empty",
+      "valid": false,
+      "issues": [
+        {
+          "code": "INVALID_VALUE",
+          "path": "plugin.id"
+        }
+      ]
+    },
+    "06-plugin-id-leading-whitespace.json": {
+      "name": "06-plugin-id-leading-whitespace",
+      "valid": false,
+      "issues": [
+        {
+          "code": "INVALID_VALUE",
+          "path": "plugin.id"
+        }
+      ]
+    },
+    "07-version-trailing-whitespace.json": {
+      "name": "07-version-trailing-whitespace",
+      "valid": false,
+      "issues": [
+        {
+          "code": "INVALID_VALUE",
+          "path": "plugin.version"
+        }
+      ]
+    },
+    "08-plugin-missing.json": {
+      "name": "08-plugin-missing",
+      "valid": false,
+      "issues": [
+        {
+          "code": "MISSING_FIELD",
+          "path": "plugin"
+        }
+      ]
+    },
+    "09-plugin-not-an-object.json": {
+      "name": "09-plugin-not-an-object",
+      "valid": false,
+      "issues": [
+        {
+          "code": "TYPE_MISMATCH",
+          "path": "plugin"
+        }
+      ]
+    },
+    "10-plugin-version-missing.json": {
+      "name": "10-plugin-version-missing",
+      "valid": false,
+      "issues": [
+        {
+          "code": "MISSING_FIELD",
+          "path": "plugin.version"
+        }
+      ]
+    },
+    "11-plugin-unknown-field.json": {
+      "name": "11-plugin-unknown-field",
+      "valid": false,
+      "issues": [
+        {
+          "code": "UNKNOWN_FIELD",
+          "path": "plugin.displayName"
+        }
+      ]
+    },
+    "12-capabilities-not-an-object.json": {
+      "name": "12-capabilities-not-an-object",
+      "valid": false,
+      "issues": [
+        {
+          "code": "TYPE_MISMATCH",
+          "path": "capabilities"
+        }
+      ]
+    },
+    "13-optional-missing.json": {
+      "name": "13-optional-missing",
+      "valid": false,
+      "issues": [
+        {
+          "code": "MISSING_FIELD",
+          "path": "capabilities.optional"
+        }
+      ]
+    },
+    "14-duplicate-required.json": {
+      "name": "14-duplicate-required",
+      "valid": false,
+      "issues": [
+        {
+          "code": "INVALID_VALUE",
+          "path": "capabilities.required[2]"
+        }
+      ]
+    },
+    "15-required-optional-overlap.json": {
+      "name": "15-required-optional-overlap",
+      "valid": false,
+      "issues": [
+        {
+          "code": "INVALID_VALUE",
+          "path": "capabilities.required[1]"
+        }
+      ]
+    },
+    "16-capability-not-string.json": {
+      "name": "16-capability-not-string",
+      "valid": false,
+      "issues": [
+        {
+          "code": "TYPE_MISMATCH",
+          "path": "capabilities.required[0]"
+        }
+      ]
+    },
+    "17-capability-empty.json": {
+      "name": "17-capability-empty",
+      "valid": false,
+      "issues": [
+        {
+          "code": "INVALID_VALUE",
+          "path": "capabilities.optional[0]"
+        }
+      ]
+    },
+    "18-capability-whitespace.json": {
+      "name": "18-capability-whitespace",
+      "valid": false,
+      "issues": [
+        {
+          "code": "INVALID_VALUE",
+          "path": "capabilities.required[0]"
+        }
+      ]
+    },
+    "19-capability-unknown-field.json": {
+      "name": "19-capability-unknown-field",
+      "valid": false,
+      "issues": [
+        {
+          "code": "UNKNOWN_FIELD",
+          "path": "capabilities.forbidden"
+        }
+      ]
+    },
+    "20-resources-not-array.json": {
+      "name": "20-resources-not-array",
+      "valid": false,
+      "issues": [
+        {
+          "code": "TYPE_MISMATCH",
+          "path": "resources"
+        }
+      ]
+    },
+    "21-resource-not-an-object.json": {
+      "name": "21-resource-not-an-object",
+      "valid": false,
+      "issues": [
+        {
+          "code": "TYPE_MISMATCH",
+          "path": "resources[0]"
+        }
+      ]
+    },
+    "22-resource-kind-invalid.json": {
+      "name": "22-resource-kind-invalid",
+      "valid": false,
+      "issues": [
+        {
+          "code": "INVALID_VALUE",
+          "path": "resources[0].kind"
+        }
+      ]
+    },
+    "23-resource-scope-padded.json": {
+      "name": "23-resource-scope-padded",
+      "valid": false,
+      "issues": [
+        {
+          "code": "INVALID_VALUE",
+          "path": "resources[0].scope"
+        }
+      ]
+    },
+    "24-resource-scope-missing.json": {
+      "name": "24-resource-scope-missing",
+      "valid": false,
+      "issues": [
+        {
+          "code": "MISSING_FIELD",
+          "path": "resources[0].scope"
+        }
+      ]
+    },
+    "25-resource-scope-null-no-default.json": {
+      "name": "25-resource-scope-null-no-default",
+      "valid": false,
+      "issues": [
+        {
+          "code": "TYPE_MISMATCH",
+          "path": "resources[0].scope"
+        }
+      ]
+    },
+    "26-duplicate-resource.json": {
+      "name": "26-duplicate-resource",
+      "valid": false,
+      "issues": [
+        {
+          "code": "INVALID_VALUE",
+          "path": "resources[1]"
+        }
+      ]
+    },
+    "27-resource-unknown-field.json": {
+      "name": "27-resource-unknown-field",
+      "valid": false,
+      "issues": [
+        {
+          "code": "UNKNOWN_FIELD",
+          "path": "resources[0].owner"
+        }
+      ]
+    },
+    "28-resource-name-trailing-whitespace.json": {
+      "name": "28-resource-name-trailing-whitespace",
+      "valid": false,
+      "issues": [
+        {
+          "code": "INVALID_VALUE",
+          "path": "resources[0].name"
+        }
+      ]
+    },
+    "29-resource-missing-name-and-scope.json": {
+      "name": "29-resource-missing-name-and-scope",
+      "valid": false,
+      "issues": [
+        {
+          "code": "MISSING_FIELD",
+          "path": "resources[1].name"
+        },
+        {
+          "code": "MISSING_FIELD",
+          "path": "resources[1].scope"
+        }
+      ]
+    },
+    "30-duplicate-capabilities-in-both-lists.json": {
+      "name": "30-duplicate-capabilities-in-both-lists",
+      "valid": false,
+      "issues": [
+        {
+          "code": "INVALID_VALUE",
+          "path": "capabilities.required[1]"
+        },
+        {
+          "code": "INVALID_VALUE",
+          "path": "capabilities.required[3]"
+        },
+        {
+          "code": "MISSING_FIELD",
+          "path": "capabilities.optional"
+        }
+      ]
+    },
+    "31-multiple-defects.json": {
+      "name": "31-multiple-defects",
+      "valid": false,
+      "issues": [
+        {
+          "code": "UNKNOWN_FIELD",
+          "path": "unexpected"
+        },
+        {
+          "code": "INVALID_VALUE",
+          "path": "schemaVersion"
+        },
+        {
+          "code": "INVALID_VALUE",
+          "path": "plugin.id"
+        },
+        {
+          "code": "UNKNOWN_FIELD",
+          "path": "capabilities.extra"
+        },
+        {
+          "code": "INVALID_VALUE",
+          "path": "capabilities.required[0]"
+        },
+        {
+          "code": "INVALID_VALUE",
+          "path": "resources[0].kind"
+        },
+        {
+          "code": "INVALID_VALUE",
+          "path": "resources[0].name"
+        },
+        {
+          "code": "INVALID_VALUE",
+          "path": "resources[0].scope"
+        },
+        {
+          "code": "UNKNOWN_FIELD",
+          "path": "resources[0].loud"
+        }
+      ]
+    },
+    "32-resources-omitted.json": {
+      "name": "32-resources-omitted",
+      "valid": false,
+      "issues": [
+        {
+          "code": "MISSING_FIELD",
+          "path": "resources"
+        }
+      ]
+    },
+    "33-resources-null.json": {
+      "name": "33-resources-null",
+      "valid": false,
+      "issues": [
+        {
+          "code": "TYPE_MISMATCH",
+          "path": "resources"
+        }
+      ]
+    },
+    "34-uppercase-scope-label.json": {
+      "name": "34-uppercase-scope-label",
+      "valid": false,
+      "issues": [
+        {
+          "code": "INVALID_VALUE",
+          "path": "resources[0].scope"
+        }
+      ]
+    }
+  },
+  "structural": {
+    "01-duplicate-schema-version.json.txt": {
+      "name": "01-duplicate-schema-version",
+      "doc": "JSON.parse keeps the last duplicate; the duplicate key itself is invisible to JavaScript. A JSON-text parser should report DUPLICATE_FIELD on the repeated key.",
+      "issues": [
+        {
+          "code": "DUPLICATE_FIELD",
+          "path": "schemaVersion"
+        }
+      ],
+      "evaluatedAs": "JSON.parse of the file text; a value-level validator cannot detect duplicate keys, so this vector is only decidable by a JSON-text-aware parser"
+    },
+    "02-duplicate-required.json.txt": {
+      "name": "02-duplicate-required",
+      "doc": "Duplicate required[] field name. Only the last value survives JSON.parse.",
+      "issues": [
+        {
+          "code": "DUPLICATE_FIELD",
+          "path": "capabilities.required"
+        }
+      ],
+      "evaluatedAs": "JSON.parse of the file text; a value-level validator cannot detect duplicate keys, so this vector is only decidable by a JSON-text-aware parser"
+    },
+    "03-duplicate-plugin-id.json.txt": {
+      "name": "03-duplicate-plugin-id",
+      "doc": "The surviving plugin.id is valid, so a value-level check passes; only a text-level duplicate detector can reject this.",
+      "issues": [
+        {
+          "code": "DUPLICATE_FIELD",
+          "path": "plugin.id"
+        }
+      ],
+      "evaluatedAs": "JSON.parse of the file text; a value-level validator cannot detect duplicate keys, so this vector is only decidable by a JSON-text-aware parser"
+    },
+    "04-duplicate-resource-name.json.txt": {
+      "name": "04-duplicate-resource-name",
+      "doc": "Duplicate field name inside a resources[] entry.",
+      "issues": [
+        {
+          "code": "DUPLICATE_FIELD",
+          "path": "resources[0].name"
+        }
+      ],
+      "evaluatedAs": "JSON.parse of the file text; a value-level validator cannot detect duplicate keys, so this vector is only decidable by a JSON-text-aware parser"
+    }
+  }
+}

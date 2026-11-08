@@ -1,0 +1,30 @@
+{
+  "schemaVersion": "0.1.0-draft.1",
+  "plugin": {
+    "id": "example.scope-labels",
+    "version": "1.0.0"
+  },
+  "capabilities": {
+    "required": [
+      "dsh.tools.register"
+    ],
+    "optional": []
+  },
+  "resources": [
+    {
+      "kind": "tool",
+      "name": "status",
+      "scope": "plugin"
+    },
+    {
+      "kind": "service",
+      "name": "upstream.api",
+      "scope": "agent"
+    },
+    {
+      "kind": "service",
+      "name": "cache",
+      "scope": "per-session"
+    }
+  ]
+}

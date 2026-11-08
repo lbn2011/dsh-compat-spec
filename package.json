@@ -1,0 +1,31 @@
+{
+  "name": "dsh-compat-spec",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Independent DSH plugin compatibility protocol: draft validation of plugin declarations. Pure library, zero dependencies.",
+  "engines": {
+    "node": ">=24.9.0"
+  },
+  "main": "./src/index.js",
+  "types": "./src/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./src/index.d.ts",
+      "default": "./src/index.js"
+    },
+    "./schema": "./spec/declaration.schema.json",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "src/",
+    "spec/",
+    "conformance/"
+  ],
+  "scripts": {
+    "test": "node --test",
+    "check:schema": "node tools/schema-sync.mjs --check",
+    "sync:schema": "node tools/schema-sync.mjs --write",
+    "conformance": "node tools/cli.mjs --conformance"
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "schemaVersion": "0.1.0-draft.1",
+  "plugin": {
+    "id": "example.demo",
+    "version": "1.0.0",
+    "displayName": "Demo"
+  },
+  "capabilities": {
+    "required": [],
+    "optional": []
+  },
+  "resources": []
+}

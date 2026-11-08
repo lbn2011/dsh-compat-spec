@@ -1,0 +1,9 @@
+{
+  "schemaVersion": "0.1.0-draft.1",
+  "plugin": "example.demo",
+  "capabilities": {
+    "required": [],
+    "optional": []
+  },
+  "resources": []
+}

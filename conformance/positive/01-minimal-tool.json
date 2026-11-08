@@ -1,0 +1,12 @@
+{
+  "schemaVersion": "0.1.0-draft.1",
+  "plugin": {
+    "id": "example.minimal-tool",
+    "version": "0.1.0"
+  },
+  "capabilities": {
+    "required": [],
+    "optional": []
+  },
+  "resources": []
+}

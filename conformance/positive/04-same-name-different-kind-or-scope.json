@@ -1,0 +1,30 @@
+{
+  "schemaVersion": "0.1.0-draft.1",
+  "plugin": {
+    "id": "example.same-name",
+    "version": "0.0.1"
+  },
+  "capabilities": {
+    "required": [],
+    "optional": [
+      "dsh.tools.register"
+    ]
+  },
+  "resources": [
+    {
+      "kind": "tool",
+      "name": "status",
+      "scope": "plugin"
+    },
+    {
+      "kind": "tool",
+      "name": "status",
+      "scope": "shared"
+    },
+    {
+      "kind": "service",
+      "name": "status",
+      "scope": "plugin"
+    }
+  ]
+}

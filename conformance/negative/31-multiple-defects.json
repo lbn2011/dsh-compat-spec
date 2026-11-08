@@ -1,0 +1,25 @@
+{
+  "schemaVersion": "9.9.9",
+  "plugin": {
+    "id": "",
+    "version": "1.0"
+  },
+  "capabilities": {
+    "required": [
+      "x"
+    ],
+    "optional": [
+      "x"
+    ],
+    "extra": 1
+  },
+  "unexpected": true,
+  "resources": [
+    {
+      "kind": "nope",
+      "name": "",
+      "scope": "",
+      "loud": true
+    }
+  ]
+}

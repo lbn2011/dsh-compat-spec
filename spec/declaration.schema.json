@@ -1,0 +1,170 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/dsh-compat-spec/declaration.schema.json",
+  "title": "DSH plugin declaration",
+  "description": "Draft plugin declaration protocol. Validating a declaration describes author intent only; it is not host acceptance, loading or execution evidence. No JSON Schema engine is bundled: normative validation is performed by validateDeclaration() in this package.",
+  "$comment": "protocolVersion: 0.1.0-draft.1 | Generated from src/index.js declarationJsonSchema(); edit that function, not this file. | Not expressible in JSON Schema, and therefore not enforced by a schema-only validator: repeated object field names in the JSON text (no single-keyword constraint exists; only a JSON-text parser can see them); capabilities.required and capabilities.optional must be disjoint (uniqueItems is per array; cross-array disjointness has no keyword).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "plugin",
+    "capabilities",
+    "resources"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "type": "string",
+      "const": "0.1.0-draft.1",
+      "description": "Must equal \"0.1.0-draft.1\". No other revision is accepted."
+    },
+    "plugin": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "version"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "^[^\\u0000-\\u001F\\u007F\\u2028\\u2029\\s](?:[^\\u0000-\\u001F\\u007F\\u2028\\u2029]*[^\\u0000-\\u001F\\u007F\\u2028\\u2029\\s])?$",
+          "description": "Opaque non-empty plugin identifier without leading or trailing whitespace."
+        },
+        "version": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "^[^\\u0000-\\u001F\\u007F\\u2028\\u2029\\s](?:[^\\u0000-\\u001F\\u007F\\u2028\\u2029]*[^\\u0000-\\u001F\\u007F\\u2028\\u2029\\s])?$",
+          "description": "Opaque non-empty version label. No SemVer parsing, ordering or satisfiability is defined by this protocol."
+        }
+      }
+    },
+    "capabilities": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "required",
+        "optional"
+      ],
+      "properties": {
+        "required": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "pattern": "^[^\\u0000-\\u001F\\u007F\\u2028\\u2029\\s](?:[^\\u0000-\\u001F\\u007F\\u2028\\u2029]*[^\\u0000-\\u001F\\u007F\\u2028\\u2029\\s])?$",
+            "description": "Capability the plugin declares as required."
+          },
+          "description": "Must be disjoint from capabilities.optional. Disjointness is NOT expressible in JSON Schema (uniqueItems covers one array at a time), so a schema-only check does not enforce it."
+        },
+        "optional": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "pattern": "^[^\\u0000-\\u001F\\u007F\\u2028\\u2029\\s](?:[^\\u0000-\\u001F\\u007F\\u2028\\u2029]*[^\\u0000-\\u001F\\u007F\\u2028\\u2029\\s])?$",
+            "description": "Capability the plugin declares as optional."
+          },
+          "description": "Must be disjoint from capabilities.required. Disjointness is NOT expressible in JSON Schema (uniqueItems covers one array at a time), so a schema-only check does not enforce it."
+        }
+      }
+    },
+    "resources": {
+      "type": "array",
+      "uniqueItems": true,
+      "description": "Required array of resource claims; it may be empty. It is never defaulted, and null is not accepted. No two entries may share the same (kind, name, scope) triple: each entry has exactly these three required fields, so duplicate triples are equal items and uniqueItems rejects them at the schema level as well.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "kind",
+          "name",
+          "scope"
+        ],
+        "properties": {
+          "kind": {
+            "type": "string",
+            "enum": [
+              "tool",
+              "service"
+            ],
+            "description": "Resource category. Not a host registration API."
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "pattern": "^[^\\u0000-\\u001F\\u007F\\u2028\\u2029\\s](?:[^\\u0000-\\u001F\\u007F\\u2028\\u2029]*[^\\u0000-\\u001F\\u007F\\u2028\\u2029\\s])?$",
+            "description": "Opaque non-empty resource name without leading or trailing whitespace."
+          },
+          "scope": {
+            "type": "string",
+            "minLength": 1,
+            "pattern": "^[^\\u0000-\\u001F\\u007F\\u2028\\u2029\\s](?:[^\\u0000-\\u001F\\u007F\\u2028\\u2029]*[^\\u0000-\\u001F\\u007F\\u2028\\u2029\\s])?$",
+            "description": "Author-supplied static label: any non-empty string without leading or trailing whitespace. Not a host, agent or session scope, and no default is applied."
+          }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "issue": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "code",
+        "path",
+        "message",
+        "severity"
+      ],
+      "properties": {
+        "code": {
+          "type": "string",
+          "enum": [
+            "TYPE_MISMATCH",
+            "MISSING_FIELD",
+            "UNKNOWN_FIELD",
+            "INVALID_VALUE",
+            "THROWS"
+          ]
+        },
+        "path": {
+          "type": "string",
+          "description": "Empty string for the declaration root; otherwise a dot/bracket path."
+        },
+        "message": {
+          "type": "string",
+          "minLength": 1
+        },
+        "severity": {
+          "type": "string",
+          "enum": [
+            "error",
+            "warning"
+          ]
+        }
+      }
+    },
+    "validationResult": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "valid",
+        "issues"
+      ],
+      "properties": {
+        "valid": {
+          "type": "boolean"
+        },
+        "issues": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/issue"
+          }
+        }
+      }
+    }
+  }
+}

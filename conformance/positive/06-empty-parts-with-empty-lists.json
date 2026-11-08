@@ -1,0 +1,12 @@
+{
+  "schemaVersion": "0.1.0-draft.1",
+  "plugin": {
+    "id": "9",
+    "version": "0"
+  },
+  "capabilities": {
+    "required": [],
+    "optional": []
+  },
+  "resources": []
+}
