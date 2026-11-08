@@ -21,6 +21,20 @@ test('package identity is the agreed private ESM package', () => {
   assert.equal(packageJson.exports['.'].default, './src/index.js');
 });
 
+test('the admission-evidence grammar is reachable by package specifier', async () => {
+  const entry = packageJson.exports['./admission-evidence'];
+  assert.equal(entry.default, './src/admission-evidence.js');
+  assert.equal(entry.types, './src/admission-evidence.d.ts');
+  assert.ok(existsSync(`${ROOT}${entry.default.slice(2)}`), 'the default target must exist');
+  assert.ok(existsSync(`${ROOT}${entry.types.slice(2)}`), 'the types target must exist');
+
+  // Self-reference: the specifier must resolve from inside this package without
+  // any sibling path, because that is the route a consumer is expected to take.
+  const namespace = await import('dsh-compat-spec/admission-evidence');
+  assert.equal(typeof namespace.validateAdmissionEvidence, 'function');
+  assert.equal(namespace.VERSION, 'admission-evidence/0.1-draft.1');
+});
+
 test('the package declares no runtime or development dependencies', () => {
   assert.deepEqual(Object.keys(packageJson.dependencies ?? {}), []);
   assert.deepEqual(Object.keys(packageJson.devDependencies ?? {}), []);

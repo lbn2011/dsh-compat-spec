@@ -47,6 +47,32 @@ The library performs no I/O: it does not read or write files, access the
 network, read process state or touch a live host. A file-reading CLI exists
 separately as `tools/cli.mjs` for humans and CI.
 
+### Admission-evidence grammar
+
+The admission-evidence document grammar is a **separate module** with its own entry
+point. It is not re-exported from the package root, because it validates a different
+document — a coordinator's admission record, not a plugin declaration:
+
+```js
+import { validateAdmissionEvidence } from 'dsh-compat-spec/admission-evidence';
+```
+
+```json
+"exports": {
+  ".": { "types": "./src/index.d.ts", "default": "./src/index.js" },
+  "./admission-evidence": {
+    "types": "./src/admission-evidence.d.ts",
+    "default": "./src/admission-evidence.js"
+  }
+}
+```
+
+Reading the module through the package specifier — rather than a relative path into
+a checkout — is the supported route, and it is what the suite asserts with a
+self-reference import. That proves resolution **from inside this package**; it does
+not prove what an installed consumer resolves, which needs a real pack-and-install.
+See `docs/testing/2026-11-09-admission-evidence-export.md`.
+
 ### CLI (optional)
 
 ```sh
@@ -57,6 +83,11 @@ node tools/cli.mjs --template                   # print the declaration skeleton
 ```
 
 ## Development commands
+
+The repository's own suite is run under a fixed resource envelope by
+`scripts/spec-test-batch/run.sh` (one transient unit, 384 MiB, swap 0, 32 tasks,
+50 % CPU, 120 s, one memory gate). Measured 2026-11-09: `94/94` in four bounded
+rounds, last two on identical inputs.
 
 ```sh
 node --test                       # full suite
