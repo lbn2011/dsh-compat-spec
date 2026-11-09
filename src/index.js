@@ -9,8 +9,14 @@
  * @packageDocumentation
  */
 
-/** The protocol revision implemented by this package. */
+/** Legacy revision; retained so existing callers do not silently upgrade. */
 export const PROTOCOL_VERSION = '0.1.0-draft.1';
+
+/** Revision requiring an explicit JSON Schema 2020-12 configuration contract. */
+export const CONFIG_SCHEMA_PROTOCOL_VERSION = '0.2.0-draft.1';
+
+/** Exact supported revisions, oldest first; no version ranges or negotiation. */
+export const SUPPORTED_PROTOCOL_VERSIONS = Object.freeze([PROTOCOL_VERSION, CONFIG_SCHEMA_PROTOCOL_VERSION]);
 
 /** Resource categories. A closed vocabulary, not a host registration API. */
 export const RESOURCE_KINDS = Object.freeze(['tool', 'service']);
@@ -46,6 +52,19 @@ const FIELDS = Object.freeze({
   capabilities: Object.freeze(['required', 'optional']),
   resource: Object.freeze(['kind', 'name', 'scope']),
 });
+
+const CONFIG_ROOT_FIELDS = Object.freeze([...FIELDS.root, 'configSchema']);
+
+// The dialect and its semantics belong to a separate schema engine. Do not
+// recurse into keywords here: this is intentionally an outer-shape check only.
+function checkConfigSchema(value, issues) {
+  const isRecord = isPlainObject(value)
+    && (Object.getPrototypeOf(value) === Object.prototype || Object.getPrototypeOf(value) === null);
+  if (typeof value !== 'boolean' && !isRecord) {
+    issues.push(issue(ISSUE_CODES.TYPE_MISMATCH, 'configSchema',
+      `configSchema must be a boolean or an object, got ${typeName(value)}.`));
+  }
+}
 
 function hasOwn(object, key) {
   return Object.prototype.hasOwnProperty.call(object, key);
@@ -355,7 +374,13 @@ function checkResources(value, issues) {
 }
 
 /**
- * Validate an author-supplied declaration.
+ * Validate an author-supplied declaration envelope by its exact schemaVersion.
+ *
+ * In the configuration-contract revision, only configSchema's outer boolean or
+ * object shape is checked. Success does NOT establish schema semantic validity,
+ * reference resolution, dialect/format support, or configuration-value validity.
+ * Those checks require a separate JSON Schema 2020-12 engine. No keywords are
+ * traversed, fetched, executed, defaulted or coerced here.
  *
  * **No-throw contract: JSON values only.** The protocol's input language is a
  * JSON value, and for any JSON value this function returns a result instead of
@@ -382,20 +407,30 @@ export function validateDeclaration(value) {
     return Object.freeze({ valid: false, issues: Object.freeze(issues) });
   }
 
-  // Issue order is fixed: unknown root fields, then schemaVersion, plugin,
-  // capabilities, resources; each object level reports unknown fields first.
-  reportUnknownFields(value, FIELDS.root, '', issues);
+  // Read the discriminator once; buffer getter issues to preserve issue order.
+  const versionIssues = [];
+  const hasVersion = hasOwn(value, 'schemaVersion');
+  const versionRead = hasVersion
+    ? readField(value, 'schemaVersion', 'schemaVersion', versionIssues)
+    : { ok: false };
+  const hasConfigContract = versionRead.ok && versionRead.value === CONFIG_SCHEMA_PROTOCOL_VERSION;
+  const rootFields = hasConfigContract ? CONFIG_ROOT_FIELDS : FIELDS.root;
 
-  if (!hasOwn(value, 'schemaVersion')) {
+  // Unknown/missing revisions never infer the newer envelope from its fields.
+  // Issue order: unknown root fields, schemaVersion, then revision field order.
+  reportUnknownFields(value, rootFields, '', issues);
+  issues.push(...versionIssues);
+
+  if (!hasVersion) {
     issues.push(
       issue(
         ISSUE_CODES.MISSING_FIELD,
         'schemaVersion',
-        `schemaVersion is required and must equal ${JSON.stringify(PROTOCOL_VERSION)}.`,
+        `schemaVersion is required and must be one of ${JSON.stringify(SUPPORTED_PROTOCOL_VERSIONS)}.`,
       ),
     );
   } else {
-    const read = readField(value, 'schemaVersion', 'schemaVersion', issues);
+    const read = versionRead;
     if (read.ok) {
       if (typeof read.value !== 'string') {
         issues.push(
@@ -405,12 +440,12 @@ export function validateDeclaration(value) {
             `schemaVersion must be a string, got ${typeName(read.value)}.`,
           ),
         );
-      } else if (read.value !== PROTOCOL_VERSION) {
+      } else if (!SUPPORTED_PROTOCOL_VERSIONS.includes(read.value)) {
         issues.push(
           issue(
             ISSUE_CODES.INVALID_VALUE,
             'schemaVersion',
-            `schemaVersion must equal ${JSON.stringify(PROTOCOL_VERSION)}; got ${JSON.stringify(read.value)}. No other protocol revision is accepted by this validator.`,
+            `schemaVersion must equal one of ${SUPPORTED_PROTOCOL_VERSIONS.map((version) => JSON.stringify(version)).join(', ')}; got ${JSON.stringify(read.value)}.`,
           ),
         );
       }
@@ -421,6 +456,7 @@ export function validateDeclaration(value) {
     ['plugin', checkPlugin],
     ['capabilities', checkCapabilities],
     ['resources', checkResources],
+    ...(hasConfigContract ? [['configSchema', checkConfigSchema]] : []),
   ]) {
     if (!hasOwn(value, field)) {
       const message =
@@ -439,7 +475,8 @@ export function validateDeclaration(value) {
 
 /**
  * Throwing assertion helper for callers that prefer exceptions at their own
- * boundary. Not used internally by {@link validateDeclaration}.
+ * boundary. Not used internally by {@link validateDeclaration}. This asserts
+ * envelope validity only, not embedded-schema or configuration-value validity.
  *
  * @param {unknown} value
  * @param {string} [label] Prefix for the thrown message.
@@ -489,22 +526,55 @@ const SCHEMA_INEXPRESSIBLE_RULES = Object.freeze([
 ]);
 
 /**
- * JSON Schema (2020-12) for the declaration format.
+ * Explicit revision schema API. No default revision and no semantic validation
+ * of the embedded configSchema: the new schema checks its outer shape only.
+ * Returns a fresh schema; unknown revisions throw RangeError (caller API misuse).
+ * The legacy generated artifact remains owned by declarationJsonSchema().
+ *
+ * @param {string} version Exact supported protocol revision.
+ * @returns {object}
+ */
+export function declarationJsonSchemaForVersion(version) {
+  if (!SUPPORTED_PROTOCOL_VERSIONS.includes(version)) {
+    throw new RangeError('Unsupported declaration protocol revision.');
+  }
+  const schema = declarationJsonSchema();
+  if (version === PROTOCOL_VERSION) return schema;
+  schema.$id = 'https://example.invalid/dsh-compat-spec/0.2.0-draft.1/declaration.schema.json';
+  schema.title = 'DSH plugin declaration with configuration contract';
+  schema.description = 'Declaration envelope only. configSchema is an author-supplied JSON Schema 2020-12 contract; only its outer boolean or object shape is checked. No schema semantic validation, reference resolution, format assertion or configuration-value validation is performed. This is not host acceptance, loading or execution evidence.';
+  schema.$comment = [
+    `protocolVersion: ${version}`,
+    'Produced by src/index.js declarationJsonSchemaForVersion(); no new generated artifact is published yet.',
+    `Not expressible in JSON Schema, and therefore not enforced by a schema-only validator: ${SCHEMA_INEXPRESSIBLE_RULES.join('; ')}.`,
+  ].join(' | ');
+  schema.required = [...CONFIG_ROOT_FIELDS];
+  schema.properties.schemaVersion = {
+    type: 'string', const: version,
+    description: `Must equal ${JSON.stringify(version)}. No other revision is accepted.`,
+  };
+  schema.properties.configSchema = {
+    type: ['boolean', 'object'],
+    description: 'Required JSON Schema 2020-12 configuration contract. Outer shape only: no keyword or schema semantic checking here. Full admission and configuration evaluation require a separate engine.',
+  };
+  return schema;
+}
+
+/**
+ * JSON Schema (2020-12) for the legacy declaration format.
  *
  * PROVENANCE: this object is the single source of truth. `spec/declaration.schema.json`
  * is generated from it and `node --test` fails if the committed file drifts.
  *
  * ENFORCEMENT DISCLAIMER: this package ships and calls no JSON Schema engine.
- * Normative validation is performed by {@link validateDeclaration}. The schema
- * agrees with it on every expressible rule; the two rules that JSON Schema
- * cannot express are listed verbatim in `$comment` and in
- * spec/declaration-protocol.md §9. Resource-triple uniqueness is expressible and
- * therefore not listed: `kind`, `name` and `scope` are the only fields of each
- * resource (additionalProperties is false, all three are required), so two
- * entries sharing the triple are equal items and `uniqueItems: true` rejects
- * them.
+ * Normative envelope validation is performed by {@link validateDeclaration}.
+ * This schema agrees with its legacy branch on every expressible rule; the two
+ * rules that JSON Schema cannot express are listed verbatim in `$comment` and
+ * spec/declaration-protocol.md §9. Resource-triple uniqueness is expressible:
+ * kind, name and scope are the only fields, all required, so uniqueItems rejects
+ * repeated triples.
  *
- * @returns {object} A fresh, JSON-serializable schema object.
+ * @returns {object} A fresh, JSON-serializable legacy schema object.
  */
 export function declarationJsonSchema() {
   const label = (description) => ({ type: 'string', minLength: 1, pattern: LABEL_PATTERN, description });

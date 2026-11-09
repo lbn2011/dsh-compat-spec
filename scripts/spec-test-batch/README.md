@@ -1,65 +1,112 @@
-# spec-test-batch
+# spec-test-batch — candidate core pilot
 
-Two scripts that run the `dsh-compat-spec` suite once, under a fixed resource
-envelope, and record what happened.
+**Executed pilot, 2026-11-10: 105/105 tests passed in one bounded service run.**
+A preceding relative-path invocation refused with exit 77 before creating a run
+or launching a unit. Use the absolute entry path below. No automatic retries.
+See [the pilot record](../../docs/testing/2026-11-10-config-contract-runner-pilot.md).
 
-| Script | Where it runs | What it does |
-| --- | --- | --- |
-| `run.sh` | on the host | takes the shared acceptance lock, starts ONE transient systemd unit with the limits below, waits, reads back the terminal state, and diffs the selected-input hashes before and after |
-| `payload.sh` | inside that unit | re-reads its own cgroup envelope, refuses if it does not match, checks the static contract, then runs the suite in a bubblewrap sandbox |
+## Pinned core source
+
+The repository-local vendored core consists of [common.sh](<../bounded-runner/common.sh>),
+[policy.sh](<../bounded-runner/policy.sh>), [host.sh](<../bounded-runner/host.sh>),
+[envelope.sh](<../bounded-runner/envelope.sh>), [tap.sh](<../bounded-runner/tap.sh>) and
+[core.manifest](<../bounded-runner/core.manifest>). These are copied without intentional
+byte changes from canonical platform commit
+`c8123de9f7bec62f9b09b5a542cd8fe383169a67`, directory
+`projects/dsh-compat-platform/scripts/bounded-runner/`. Lead compared all six files
+byte-for-byte before the successful pilot. [UPSTREAM.md](../bounded-runner/UPSTREAM.md)
+records the pin and explicit maintenance procedure. The manifest retains
+`bounded-runner/1 source-review-unreleased`; this is not a released ABI claim.
+There is no runtime sibling-repository lookup, sync, or fallback.
+
+## Responsibilities and invocation
+
+- [run.sh](<run.sh>) is a thin `br_host_run` client: workload preflight and selected
+  inputs are local policy; lock, unit-family guard, one launch, journal, ownership-safe
+  terminal handling, control/selected snapshots and final verdict are core policy.
+- [payload.sh](<payload.sh>) enters the core envelope before syntax or workload
+  subprocesses, retains the existing static contract and serial Node TAP suite,
+  then always calls `br_payload_finish` on explicit exits after valid arguments.
+  The host alone writes the unit log. No package installation or acquisition occurs.
+
+Reviewed invocation (use an absolute path so source-closure checks match):
 
 ```bash
-bash projects/dsh-compat-spec/scripts/spec-test-batch/run.sh
+bash /root/dsh-ecosystem-spec/projects/dsh-compat-spec/scripts/spec-test-batch/run.sh
 ```
 
-Raw artifacts go to `${SPEC_TEST_RUNS_ROOT:-/data/dsh-ecosystem-test-artifacts/runs}/<stamp>-spec-test-batch-<pid>-<rand>/`,
-outside the repository. Only the narrative record is committed
-(`docs/testing/…`).
+It takes no arguments. Raw artifacts remain outside the repository under
+`${SPEC_TEST_RUNS_ROOT:-/data/dsh-ecosystem-test-artifacts/runs}/<stamp>-spec-test-batch-<pid>-<rand>/`.
+No new packages are required; the new filename/path dependency is the local core.
+Invoke with Bash; executable mode of sourced modules is not required.
 
-## Envelope
+## Envelope and workload
 
-384 MiB memory, swap 0, `TasksMax=32`, CPU quota 50 % of one core,
-`RuntimeMaxSec=120`, Node heap 192 MiB, one `MemAvailable >= 819200 KiB` gate.
-The payload verifies these from its own cgroup before any work starts; a
-mismatch is a refusal (`70`), never a warning.
+Fixed limits: memory 384 MiB, swap 0, tasks 32, CPU 50% of one core, runtime 120s,
+Node heap 192 MiB and one `MemAvailable >= 819200 KiB` gate. Core validates actual
+unified cgroup membership, invocation identity and effective limits before work.
+Both cleaned Node environments explicitly receive `NODE_OPTIONS="$BR_NODE_OPTIONS"`.
 
-## What one run establishes
+The static contract remains unchanged: admission-evidence default/types export
+paths must match and exist; dependencies/devDependencies/peerDependencies/
+optionalDependencies must be empty; the published file set must include `src/`,
+`spec/`, and `conformance/`. It runs under the verified unit as before. This is not
+an installed-consumer resolution test, nor evidence of DSH host acceptance/loading.
 
-1. `package.json` exposes `./admission-evidence` with a `types` sibling pointing
-   at files that exist, the package declares no dependencies, and the published
-   `files` list carries `src/`, `spec/` and `conformance/`;
-2. the suite under `src/test/` passes on exactly these bytes, with a TAP summary
-   that names each count exactly once.
+The test command remains `--test --test-concurrency=1 --test-reporter=tap
+'src/test/*.test.js'`: all current tests, including revisions, run serially in
+bubblewrap with read-only root, private tmp, PID/IPC/UTS namespaces, `--unshare-net`
+and `--die-with-parent`. The core strict-six-TAP helper requires exactly one valid
+summary for tests/pass/fail/cancelled/skipped/todo, positive tests, pass=tests and
+zero fail/cancelled/skipped/todo, plus the original Node exit of zero.
 
-## What it does not establish
+Evidence gates precede each syntax subprocess and Node workload. Output files are
+opened before Node starts; original syntax, static-contract and Node return codes
+are retained separately from mapped acceptance verdicts. Evidence failure wins even
+when a substep fails. No retry, reset-failed, broad cleanup or second launch is added.
 
-- That an installed consumer resolves the subpath the same way. That needs a real
-  install of the packed tarball, which this batch never performs.
-- That a DSH host accepts these documents, or that anything is loadable.
-- Anything about a plugin: no host is booted and no plugin is loaded.
-- Dependency provenance: the package has no dependencies, so the payload takes no
-  dependency snapshot at all.
+## Selected inputs and control closure
 
-## Exit codes
+Preflight uses quoted Bash arrays with nullglob/globstar/dotglob (no eval or
+word-splitting), rejects empty test/vector sets, and requires the revisions test and
+conformance manifest. It selects every `src/test/**/*.test.js` and
+`conformance/**/*.json`, including the manifest and positive/negative JSON vectors,
+alongside the original explicit package/source/schema inputs and this README.
+This is a named selection, **not a dependency closure**. The run uses the original
+flat test glob; recursive selection conservatively hashes any nested test files too.
 
-`run.sh`: 0 green · 70 refusal before/inside the launch · 71 static contract
-failed · 72 test verdict not green · 73 evidence write failed · 74 unit did not
-settle · 75 lock held · 76 run-directory collision · 77 hash manifest unreadable ·
-78 selected-input drift.
+The core API automatically snapshots the launcher, payload, manifest and all five
+core modules, including modules not sourced by the host. `BR_EXTRA_CONTROL` also
+includes the repository-local `UPSTREAM.md` source pin. The generated static-contract
+program is embedded in the hashed payload, not a separately sourced shell helper.
+Before/after snapshots do not detect transient edits restored between samples, or
+new files added after selection; keep the checkout immutable during an authorized run.
 
-`payload.sh`: 0 green · 70 envelope refusal · 71 static contract failed · 72 test
-verdict not green · 73 evidence write failed.
+## Exits and evidence changes
 
-## Artifacts
+Host: 0 green; 70 refusal/unknown workload exit; 71 syntax/static-contract failure;
+72 Node/TAP failure; 73 evidence failure; 74 timeout/unconfirmed terminal;
+75 lock held; 76 run collision; 77 hash read/manifest failure; 78 input drift.
+Precedence is **evidence > hash > terminal > workload**, including payload 73.
+Payload outcomes remain 0/70/71/72/73; substep codes are not overwritten by mapping.
 
-`status.txt`, `selection.txt`, `hashes-before.txt`, `hashes-after.txt`,
-`envelope-*.txt`, `memory-gate.txt`, `syntax.txt`, `static-contract.log`,
-`static-verdict.txt`, `node-tap.log`, `node-stderr.log`, `node.rc`,
-`tap-fields.txt`, `tap-summary.txt`, `tap-verdict.txt`, `terminal-query.txt`,
-`journal.txt`, `argv.txt`, `launch.txt`.
+Artifact consumers must migrate from the old combined hashes and terminal-query
+layout to core control-before/after, selected-before/after, their diffs, terminal,
+requested, ownership, payload-result and payload-evidence records. Selection counts
+now distinguish controls and workload inputs. Peaks use core measured/unavailable
+fields. Syntax, static verdict/log, Node TAP/stderr/return-code and TAP evidence
+remain; static-contract return code also has its own record. TAP field diagnostics
+use `invalid` for missing, duplicate or malformed fields; raw TAP remains authoritative.
+The old TAP byte/line and stderr-byte summaries are not retained.
 
-## Note on file modes
+## Review and remaining scope
 
-Earlier batches in this workspace were first written `600` and refused at launch
-with `rc=126`; the fix was `chmod 755`. File modes are not part of the sha256
-manifest, so a mode change does not appear as selected-input drift.
+Lead compared the six vendored files, pinned their source, reviewed absolute source
+closure and test/vector selection, and ran the bounded pilot recorded above.
+The successful pilot qualifies this wrapper's observed happy path, not every real
+manager failure/cleanup path or the other eleven maintained runners. Mock failure
+coverage is recorded separately in the canonical repository.
+
+Crashes/signals can bypass payload finalization; the host treats a missing
+payload-evidence marker as evidence failure, not success. This README was updated
+after the pilot; the acceptance record retains its measured input hash.

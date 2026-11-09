@@ -43,7 +43,12 @@ The committed `spec/declaration.schema.json` is generated. Never hand-edit it;
 3. **No inferred host meaning.** `scope` stays an author label, `version` stays an
    opaque string. Do not add SemVer parsing or map `scope` onto an agent scope.
 4. **Deterministic issue order.** Unknown root fields first, then
-   `schemaVersion`, `plugin`, `capabilities`, `resources` in field order.
+   `schemaVersion`, `plugin`, `capabilities`, `resources` in field order, followed
+   by required `configSchema` only for `0.2.0-draft.1`. Legacy defaults and the
+   generated schema remain `0.1.0-draft.1`; use the explicit
+   `declarationJsonSchemaForVersion(version)` API for the newer envelope.
+   The pure core checks only the contract's outer boolean/object shape; full
+   JSON Schema admission and instance validation belong to the platform engine.
 5. **Vectors are exact.** A negative vector's `{code, path}` set must match
    exactly; extra issues are failures, not tolerated noise.
 6. **Pure library.** `src/index.js` must import nothing: no `node:` builtins, no

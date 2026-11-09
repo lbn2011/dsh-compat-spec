@@ -1,8 +1,17 @@
-# Declaration protocol — draft 0.1.0-draft.1
+# Declaration protocol — drafts 0.1.0-draft.1 and 0.2.0-draft.1
 
 Status: **draft**. Not ratified, not published, not accepted by any DSH host.
-Protocol version: `0.1.0-draft.1` (the only value `schemaVersion` may take in this revision).
-Machine-readable schema: [declaration.schema.json](declaration.schema.json).
+Supported protocol versions: `0.1.0-draft.1` (legacy) and `0.2.0-draft.1`
+(required configuration contract). Revision selection is exact, not a version range.
+Legacy machine-readable schema: [declaration.schema.json](declaration.schema.json).
+The new envelope schema is available through `declarationJsonSchemaForVersion('0.2.0-draft.1')`;
+no new generated JSON artifact is published in this change.
+
+> **Decided (2026-11-10):** the new revision requires a full JSON Schema 2020-12
+> configuration contract in `configSchema`. Legacy declarations and vectors retain
+> their original rules. This dependency-free package checks only the declaration
+> envelope and the contract's outer shape; full schema admission and configuration
+> evaluation belong to a separate platform engine.
 Reference validator: `validateDeclaration()` in [`src/index.js`](../src/index.js).
 
 ## 0. What this document is, and is not
@@ -38,7 +47,8 @@ contract.
 
 ## 1. Document shape
 
-A declaration is a JSON object with exactly four permitted top-level fields.
+A legacy declaration is a JSON object with exactly four permitted top-level fields.
+The new revision has the same four fields plus the required `configSchema` (§4.1).
 
 ```json
 {
@@ -51,14 +61,19 @@ A declaration is a JSON object with exactly four permitted top-level fields.
 
 | Field | Presence | Type | Meaning |
 |---|---|---|---|
-| `schemaVersion` | required | string | Must equal `0.1.0-draft.1`. |
+| `schemaVersion` | required | string | Exactly `0.1.0-draft.1` or `0.2.0-draft.1`; selects that revision's rules. |
 | `plugin` | required | object | See §2. |
 | `capabilities` | required | object | See §3. |
 | `resources` | required | array | See §4. May be empty, but must be present. |
+| `configSchema` | required in `0.2.0-draft.1`; forbidden in legacy | boolean or object | JSON Schema 2020-12 configuration contract; outer shape only in this library (§4.1). |
 
-Unknown fields are rejected at every level (§6, `UNKNOWN_FIELD`), including
-future protocol revisions: a newer declaration is not treated as a subset of an
-older validator.
+Unknown fields are rejected in the declaration envelope (§6, `UNKNOWN_FIELD`).
+The schema object inside `configSchema` is not a closed declaration object: its
+keywords and nested content are not inspected here. Legacy declarations reject
+`configSchema` as `UNKNOWN_FIELD`, even if its value is `true` or `false`.
+Unsupported revisions are rejected rather than treated as a supported subset.
+For missing, unreadable, non-string, or unsupported `schemaVersion`, diagnostics
+use the legacy root field set; the presence of `configSchema` never infers a revision.
 
 ## 2. `plugin`
 
@@ -115,6 +130,51 @@ must not be mapped by inference onto a host, agent or session scope.
 
 Duplicates are detected by the triple `(kind, name, scope)`. The same `name`
 under a different `kind` or a different `scope` is **not** a duplicate.
+
+### 4.1 `configSchema` — new revision only
+
+`0.2.0-draft.1` requires an explicit `configSchema` root field. An absent field
+is `MISSING_FIELD`; `null`, arrays, strings and numbers are `TYPE_MISMATCH`.
+Both boolean schemas and object schemas (including `{}`) have an accepted outer
+shape. No value is invented when the field is absent. For example:
+
+```json
+{
+  "schemaVersion": "0.2.0-draft.1",
+  "plugin": { "id": "example.config", "version": "1" },
+  "capabilities": { "required": [], "optional": [] },
+  "resources": [],
+  "configSchema": {
+    "type": "object",
+    "properties": { "enabled": { "type": "boolean" } },
+    "required": ["enabled"],
+    "additionalProperties": false
+  }
+}
+```
+
+The author declares a **full JSON Schema 2020-12 contract**, not a custom keyword
+subset. A separate conforming engine is needed to admit and evaluate that
+contract. Under JSON Schema semantics, `true` accepts every configuration value,
+`false` accepts none, and `{}` imposes no restrictions. A `false` schema is still
+a valid declaration contract; it is not an envelope error.
+
+**Envelope-only API boundary:** `validateDeclaration`, `assertValidDeclaration`,
+and the explicit new-revision declaration schema check only that this field is a
+boolean or non-null, non-array JSON object. They do not traverse keywords, check
+metaschema conformance, resolve `$ref`/`$dynamicRef`, assert formats, enforce a
+schema dialect, evaluate a configuration instance, or establish self-contained
+references. For example, `{ "type": 42 }` and an unresolved `$ref` pass this
+outer check; that is not a claim that either is an admissible contract. They
+must undergo separate schema admission before any configuration-check result.
+No schema URI grants network/file access and this core performs no I/O.
+Defaults, coercion and mutation are never performed by this package.
+
+The platform's separate admission/evaluation policy supplies offline reference
+resolution, dialect/vocabulary support, enumerated format assertions and bounded
+execution. Envelope success alone is not full schema correctness, configuration
+compatibility, host acceptance, or certification. Legacy absence of a contract
+must not be reinterpreted as an implicit `true` schema.
 
 ## 5. Identifier rules
 
@@ -176,8 +236,8 @@ attempt proxy-trap interception; promising it would require a much more complex
 mechanism for no protocol benefit.
 
 Issue order is deterministic: unknown root fields first, then
-`schemaVersion`, `plugin`, `capabilities`, `resources`, each in a fixed field
-order. Consumers must not depend on message text; codes and paths are the
+`schemaVersion`, `plugin`, `capabilities`, `resources`, then `configSchema` only
+for the new revision, each in a fixed field order. Consumers must not depend on message text; codes and paths are the
 stable surface. `severity` currently has exactly one value, `"error"`.
 
 ## 7. No defaults
@@ -197,7 +257,11 @@ wrote, and a downstream consumer could not tell prediction from invention.
 
 ## 8. Conformance vectors and their limit
 
-`conformance/` holds language-neutral vectors:
+`conformance/` holds the unchanged legacy language-neutral vectors; these do not
+claim new-revision or schema-engine conformance. New-revision envelope regression
+cases are in [revisions.test.js](../src/test/revisions.test.js), not rewrites of
+historical vectors:
+
 
 - `positive/*.json` — the file body is a declaration that must validate cleanly;
 - `negative/*.json` — the file body is a declaration that must be rejected;
@@ -228,10 +292,27 @@ claim them; this package does not.
 [declaration.schema.json](declaration.schema.json) is generated from
 `declarationJsonSchema()` and a test fails when the committed file drifts.
 
+`declarationJsonSchema()` and `declarationTemplate()` remain legacy with no
+implicit upgrade. `PROTOCOL_VERSION` also remains `0.1.0-draft.1`.
+`CONFIG_SCHEMA_PROTOCOL_VERSION` names `0.2.0-draft.1`, and the frozen
+`SUPPORTED_PROTOCOL_VERSIONS` lists both in oldest-first order.
+`declarationJsonSchemaForVersion(version)` requires an explicit supported revision
+and returns a fresh schema; unsupported arguments throw `RangeError`. Its legacy
+result equals `declarationJsonSchema()`; the new result adds the required outer
+boolean/object constraint without a metaschema `$ref`. The existing generated
+schema must not be manually edited or repurposed for the new revision.
+
+TypeScript retains `PluginDeclaration` for legacy callers and adds
+`ConfigPluginDeclaration`, their union `SupportedPluginDeclaration`,
+`SupportedProtocolVersion`, `JsonValue`, and `ConfigurationSchema`. These types
+are not schema semantic validation or a configuration-compatibility assertion.
+
 **No JSON Schema engine is bundled or invoked by this package.** Normative
-validation is performed by the executable rules above. The schema agrees with
-those rules on every rule JSON Schema can express. Two rules it cannot express,
-repeated in the schema's `$comment`, are enforced only by `validateDeclaration`:
+**envelope** validation is performed by the executable rules above. The schemas
+agree with those envelope rules on every rule JSON Schema can express, not with
+full embedded-schema admission (§4.1). Two rules they cannot express are repeated
+in `$comment`; only cross-list disjointness is enforced by `validateDeclaration`,
+while repeated source keys require a text-level parser:
 
 1. **Repeated object field names in the JSON text.** No JSON Schema keyword
    inspects source text, so a schema sees the post-parse object. This is also

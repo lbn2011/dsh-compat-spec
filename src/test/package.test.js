@@ -72,6 +72,20 @@ test('src/index.d.ts declares exactly the runtime value exports', async () => {
   );
 });
 
+test('configuration revision APIs and types are exposed without changing legacy defaults', async () => {
+  const runtime = await import('dsh-compat-spec');
+  assert.equal(runtime.CONFIG_SCHEMA_PROTOCOL_VERSION, '0.2.0-draft.1');
+  assert.deepEqual(runtime.SUPPORTED_PROTOCOL_VERSIONS, ['0.1.0-draft.1', '0.2.0-draft.1']);
+  assert.equal(typeof runtime.declarationJsonSchemaForVersion, 'function');
+  assert.equal(runtime.declarationJsonSchema().properties.schemaVersion.const, runtime.PROTOCOL_VERSION);
+  const types = readFileSync(`${ROOT}src/index.d.ts`, 'utf8');
+  assert.match(types, /export interface PluginDeclaration\s*\{\s*schemaVersion: typeof PROTOCOL_VERSION;/);
+  assert.match(types, /export interface ConfigPluginDeclaration extends Omit<PluginDeclaration, 'schemaVersion'>\s*\{\s*schemaVersion: typeof CONFIG_SCHEMA_PROTOCOL_VERSION;\s*configSchema: ConfigurationSchema;/);
+  assert.match(types, /export type SupportedPluginDeclaration = PluginDeclaration \| ConfigPluginDeclaration;/);
+  assert.match(types, /export type ConfigurationSchema = boolean \|/);
+  assert.match(types, /declarationJsonSchemaForVersion\(version: SupportedProtocolVersion\)/);
+});
+
 test('the JSDoc on the public functions states the no-throw contract, scoped to JSON', () => {
   const source = readFileSync(`${ROOT}src/index.js`, 'utf8');
   const before = source.slice(0, source.indexOf('export function validateDeclaration'));

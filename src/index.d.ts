@@ -5,8 +5,17 @@
  * intended check; this repository does not ship TypeScript tooling.
  */
 
-/** The only accepted value of `schemaVersion` in this revision. */
+/** Legacy revision; existing callers are never silently upgraded. */
 export declare const PROTOCOL_VERSION: '0.1.0-draft.1';
+/** Revision requiring a configuration contract. */
+export declare const CONFIG_SCHEMA_PROTOCOL_VERSION: '0.2.0-draft.1';
+export type SupportedProtocolVersion = typeof PROTOCOL_VERSION | typeof CONFIG_SCHEMA_PROTOCOL_VERSION;
+export declare const SUPPORTED_PROTOCOL_VERSIONS: readonly [typeof PROTOCOL_VERSION, typeof CONFIG_SCHEMA_PROTOCOL_VERSION];
+
+/** JSON data only; this type does not prove JSON Schema semantic correctness. */
+export type JsonValue = null | boolean | number | string | JsonValue[] | { [key: string]: JsonValue };
+/** Full JSON Schema 2020-12 intent, with only outer shape checked by this package. */
+export type ConfigurationSchema = boolean | { [keyword: string]: JsonValue };
 
 /** Resource category. A closed vocabulary, not a host registration API. */
 export type ResourceKind = 'tool' | 'service';
@@ -62,7 +71,7 @@ export interface ResourceClaim {
   scope: ResourceScope;
 }
 
-/** An author-supplied plugin declaration, as accepted by the validator. */
+/** Legacy author-supplied declaration. Kept legacy for source compatibility. */
 export interface PluginDeclaration {
   schemaVersion: typeof PROTOCOL_VERSION;
   plugin: {
@@ -82,8 +91,19 @@ export interface PluginDeclaration {
   resources: ResourceClaim[];
 }
 
+/** New revision: explicit contract, with no default or implicit migration. */
+export interface ConfigPluginDeclaration extends Omit<PluginDeclaration, 'schemaVersion'> {
+  schemaVersion: typeof CONFIG_SCHEMA_PROTOCOL_VERSION;
+  configSchema: ConfigurationSchema;
+}
+
+export type SupportedPluginDeclaration = PluginDeclaration | ConfigPluginDeclaration;
+
 /**
- * Validate an author-supplied declaration.
+ * Validate an author-supplied declaration envelope by exact schemaVersion.
+ * Only configSchema's outer boolean/object shape is checked; success does not
+ * prove schema semantic correctness, resolved references, dialect/format
+ * support, or configuration-value validity. A separate 2020-12 engine is needed.
  *
  * **No-throw contract: JSON values only.** For any JSON value (anything
  * `JSON.parse` can produce) this returns a result and never throws.
@@ -97,7 +117,8 @@ export interface PluginDeclaration {
 export declare function validateDeclaration(value: unknown): ValidationResult;
 
 /**
- * Throwing convenience wrapper. Callers choose to throw; the library does not.
+ * Throwing envelope-only convenience wrapper. Does not assert embedded schema
+ * or configuration-value validity. Callers choose to throw; the library does not.
  *
  * @throws A `TypeError` whose `name` is `'DeclarationValidationError'` and whose
  *   `issues` property holds the {@link ValidationResult} issues.
@@ -108,14 +129,23 @@ export declare function assertValidDeclaration(value: unknown, label?: string): 
 export declare function declarationTemplate(): PluginDeclaration;
 
 /**
- * JSON Schema (draft 2020-12) for the declaration format.
+ * JSON Schema (draft 2020-12) for the legacy declaration envelope.
  *
  * The schema is a machine-readable mirror of the rules, not an executor: this
  * package bundles no JSON Schema validator, and two rules are not expressible
  * in JSON Schema — repeated object field names and cross-list disjointness of
  * `capabilities.required` / `capabilities.optional`. They are listed in the
- * schema's `$comment`; `validateDeclaration` enforces them. Uniqueness of the
+ * schema's `$comment`; `validateDeclaration` enforces disjointness, while source
+ * key repetition requires a text-level parser. Uniqueness of the
  * `(kind, name, scope)` triple is expressible: a resource entry has exactly
  * those three fields, so `resources` carries `uniqueItems: true`.
  */
 export declare function declarationJsonSchema(): Record<string, unknown>;
+
+/**
+ * Fresh declaration-envelope schema for an explicit revision (no default).
+ * New-revision configSchema checks only boolean/object shape, never full schema
+ * semantics. The no-argument declarationJsonSchema() remains legacy.
+ * @throws RangeError for an unsupported revision.
+ */
+export declare function declarationJsonSchemaForVersion(version: SupportedProtocolVersion): Record<string, unknown>;

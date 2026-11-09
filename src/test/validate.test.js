@@ -34,7 +34,7 @@ function issueList(result) {
   return [...result.issues].map((entry) => `${entry.code}@${entry.path}`);
 }
 
-test('PROTOCOL_VERSION is the single accepted schemaVersion', () => {
+test('PROTOCOL_VERSION remains the legacy revision and near-miss versions are rejected', () => {
   assert.equal(PROTOCOL_VERSION, '0.1.0-draft.1');
   assert.equal(validateDeclaration(valid()).valid, true);
   for (const wrong of ['0.1.0', '0.1.0-draft.2', '0.1.0-DRAFT.1', '1.0.0']) {
@@ -433,7 +433,11 @@ test('the declared IssueCode union matches the exported ISSUE_CODES keys', () =>
 
 test('the no-throw promise is scoped to JSON values, not to arbitrary JS objects', () => {
   const src = readFileSync(new URL('../index.js', import.meta.url), 'utf8');
-  const doc = src.slice(src.indexOf('/**\n * Validate an author-supplied declaration.'), src.indexOf('export function validateDeclaration'));
+  const functionStart = src.indexOf('export function validateDeclaration');
+  assert.ok(functionStart > 0);
+  const docStart = src.lastIndexOf('/**', functionStart);
+  assert.ok(docStart >= 0);
+  const doc = src.slice(docStart, functionStart);
   assert.match(doc, /No-throw contract: JSON values only/);
   assert.match(doc, /Proxy/);
   assert.doesNotMatch(doc, /never throws for any/i);
