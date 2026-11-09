@@ -106,3 +106,26 @@ The split snapshots establish no observed endpoint drift for those selected file
 3. The JSDoc-anchor and new-field-only predicate corrections are explicitly recorded above. This report does not manufacture missing historical failure logs or claim that successful later execution invalidates earlier problems.
 4. The runner preserves original substep exits and applies evidence/hash/terminal/workload gates; a passing TAP count alone is insufficient. Here the recorded evidence, hash and terminal gates also passed.
 5. There was no execution or requalification during preparation of this report. No production, host-plugin, full-schema-engine, certification or release claim follows from this pilot.
+
+## Later re-run (2026-11-10): core pinned at `1aa87f1`
+
+The shared core's policy module later gained `config-check-batch` in the
+unit-prefix allowlist and in the unit-family list, and `core.manifest` was
+refreshed to the new `policy.sh` digest. The vendored copy here was re-synced
+byte-for-byte and `UPSTREAM.md` re-pinned to that commit, then the pilot was
+executed once more:
+
+| field | value |
+|---|---|
+| run directory | `/data/dsh-ecosystem-test-artifacts/runs/20261109T192404Z-spec-test-batch-1184405-13931` |
+| `acceptance_exit` | `0` |
+| TAP | `105/105`, `fail 0`, six fields `ok` |
+| `original_exit` | `0` |
+| `memory_peak` / `pids_peak` | `37216256` B / `16` |
+| `terminal_ok` / `hash_rc` / `write_failures` | `yes` / `0` / `0` |
+
+The earlier run (`20261109T192137Z-spec-test-batch-1181852-13908`, also
+`105/105`) used the same core bytes but the previous pin text; it is superseded
+by this one only in the sense that `UPSTREAM.md` is a hashed control and its
+content changed. Both are green; neither is additive to the other. No plugin was
+loaded, no production input was read, and no certification is claimed.

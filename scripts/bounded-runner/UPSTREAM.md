@@ -2,7 +2,8 @@
 
 Canonical repository: https://github.com/lbn2011/dsh-compat-platform
 
-Source commit: `c8123de9f7bec62f9b09b5a542cd8fe383169a67`
+Source commit: `1aa87f1` (policy module gained `config-check-batch` in the
+unit-prefix allowlist and the unit-family list; `core.manifest` refreshed)
 
 Source directory: `scripts/bounded-runner/`
 
