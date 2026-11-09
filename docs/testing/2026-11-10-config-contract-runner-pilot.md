@@ -1,5 +1,15 @@
 # Configuration-contract revision and bounded-runner pilot — 2026-11-10
 
+> **Re-run after a core change (2026-11-10).** The canonical core gained the declared
+> `BR_SETENV` channel in `host.sh` (for the installer's named-target mode), so the
+> vendored copy below was re-synced byte-for-byte, `UPSTREAM.md` re-pinned to platform
+> `355d6a5`, and this pilot re-run against those bytes:
+> `/data/dsh-ecosystem-test-artifacts/runs/20261109T195203Z-spec-test-batch-1212535-4993`
+> — `acceptance_exit=0`, `terminal_ok=yes`, `hash_rc=0`, `write_failures=0`,
+> `node-tap.log` `1..105`, `# tests 105`, `# pass 105`, `# fail 0`, empty
+> `control-diff.txt`/`selected-diff.txt`, peak 55922688 B / 16 pids. The numbers below
+> describe the earlier `1aa87f1` bytes and are not retracted or combined.
+
 ## Result and evidence boundary
 
 **Actual result: 105/105 tests passed in one launched bounded service run; final acceptance exit 0.** This report reads existing artifacts; preparing it did not execute the runner, syntax checks or tests, install dependencies, change other files, or create a commit.

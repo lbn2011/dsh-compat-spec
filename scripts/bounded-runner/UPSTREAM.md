@@ -2,8 +2,10 @@
 
 Canonical repository: https://github.com/lbn2011/dsh-compat-platform
 
-Source commit: `1aa87f1` (policy module gained `config-check-batch` in the
-unit-prefix allowlist and the unit-family list; `core.manifest` refreshed)
+Source commit: `355d6a5` (`host.sh` gained the declared `BR_SETENV` channel —
+`--setenv=NAME=value` only, validated and recorded; `core.manifest` refreshed to
+the new `host.sh` digest `08a12b13…`). Supersedes the `1aa87f1` pin, which was the
+policy change adding `config-check-batch` to the unit-prefix and unit-family lists.
 
 Source directory: `scripts/bounded-runner/`
 
