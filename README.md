@@ -9,11 +9,12 @@ acceptance claim, and has not been published anywhere.
 
 | Item | State |
 |---|---|
-| Package | `dsh-compat-spec@0.0.0`, private ESM, zero dependencies, no install step |
+| Package | `dsh-compat-spec@0.1.0-draft.1`, ESM, zero dependencies, no install step |
 | Protocol version | `0.1.0-draft.1` (`schemaVersion` must equal it) |
+| Config-schema revision | `0.2.0-draft.1` — the same grammar plus an optional `configSchema` field; a `0.1.0-draft.1` document remains valid and is checked without it |
 | Runtime | Node.js built-in test runner; developed against Node 24.21.0 |
 | Host / live-DSH verification | **Not performed.** No host was started or inspected for this revision. |
-| Publication, commits, license | Not done. `private: true`; no license granted (see §Limits). |
+| Publication, commits, license | Not published. MIT since 2026-11-10; `private` cleared on explicit approval the same day, so the publish is no longer silently blocked. |
 
 ## Start here
 

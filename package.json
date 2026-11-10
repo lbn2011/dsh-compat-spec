@@ -1,7 +1,6 @@
 {
   "name": "dsh-compat-spec",
   "version": "0.1.0-draft.1",
-  "private": true,
   "type": "module",
   "description": "Independent DSH plugin compatibility protocol: draft validation of plugin declarations. Pure library, zero dependencies.",
   "engines": {

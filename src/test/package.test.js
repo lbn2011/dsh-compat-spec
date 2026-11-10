@@ -8,11 +8,14 @@ const require = createRequire(import.meta.url);
 const packageJson = require('../../package.json');
 const ROOT = fileURLToPath(new URL('../../', import.meta.url));
 
-test('package identity is the agreed private ESM package', () => {
+test('package identity is the agreed ESM package, publishable since 2026-11-10', () => {
   assert.equal(packageJson.name, 'dsh-compat-spec');
   assert.equal(packageJson.version, '0.1.0-draft.1');
   assert.equal(packageJson.type, 'module');
-  assert.equal(packageJson.private, true);
+  // Decided 2026-11-10 on explicit approval: `private` is cleared, so the publish is no
+  // longer silently blocked. Until then this asserted `true`, which encoded the earlier
+  // "private release candidate" target; the decision is what changed, not the package.
+  assert.equal(packageJson.private, undefined);
   // Decided 2026-11-10: the four repositories carry MIT. Until then this asserted
   // `undefined`, which encoded "no license chosen yet" rather than a property of the
   // package; the decision is what changed, not the package.
