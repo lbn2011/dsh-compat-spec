@@ -112,3 +112,23 @@ runs as a test: `import('dsh-compat-spec/admission-evidence')` from inside
 bash projects/dsh-compat-spec/scripts/spec-test-batch/run.sh
 # <run_dir>/static-contract.log and tap-verdict.txt hold the two answers
 ```
+
+## Later re-run (2026-11-10): vendored core re-sync
+
+The vendored `scripts/bounded-runner` copy in this repository must stay byte-identical to the
+canonical one, and the platform's `policy.sh` later gained the `second-version-observe` unit family.
+This copy was re-synced to platform commit `f40ab29` (`policy.sh` digest `8a70501a…`) and the pilot
+re-run:
+
+| Field | Value |
+| --- | --- |
+| Run directory | `20261110T153122Z-spec-test-batch-1422761-29368` |
+| TAP | `# tests 105 / # pass 105 / # fail 0` |
+| `memory_peak` | 37998592 B |
+| `pids_peak` | 16 |
+| terminal | `ok=yes`, `MainPID=0` |
+| hashes | identical before/after, 14 selected inputs |
+
+The earlier 2026-11-09 figures above describe the earlier bytes and are not additive to this one.
+The five shell modules and `core.manifest` now match the canonical checkout byte for byte; only
+`policy.sh` and `core.manifest` ever differed, and only in the accepted-prefix list.
