@@ -10,10 +10,14 @@ const ROOT = fileURLToPath(new URL('../../', import.meta.url));
 
 test('package identity is the agreed private ESM package', () => {
   assert.equal(packageJson.name, 'dsh-compat-spec');
-  assert.equal(packageJson.version, '0.0.0');
+  assert.equal(packageJson.version, '0.1.0-draft.1');
   assert.equal(packageJson.type, 'module');
   assert.equal(packageJson.private, true);
-  assert.equal(packageJson.license, undefined);
+  // Decided 2026-11-10: the four repositories carry MIT. Until then this asserted
+  // `undefined`, which encoded "no license chosen yet" rather than a property of the
+  // package; the decision is what changed, not the package.
+  assert.equal(packageJson.license, 'MIT');
+  assert.equal(packageJson.repository.url, 'git+https://github.com/lbn2011/dsh-compat-spec.git');
   assert.equal(packageJson.engines.node, '>=24.9.0');
   assert.equal(packageJson.scripts.conformance, 'node tools/cli.mjs --conformance');
   assert.ok(existsSync(`${ROOT}tools/cli.mjs`));
@@ -43,10 +47,18 @@ test('the package declares no runtime or development dependencies', () => {
   assert.equal(typeof packageJson.engines?.node, 'string');
 });
 
-test('no install, lockfile or license artifacts are committed yet', () => {
-  for (const absent of ['node_modules', 'package-lock.json', 'pnpm-lock.yaml', 'yarn.lock', 'LICENSE', 'LICENSE.md', 'COPYING']) {
+test('no install or lockfile artifacts are committed, and the license is the decided one', () => {
+  for (const absent of ['node_modules', 'package-lock.json', 'pnpm-lock.yaml', 'yarn.lock']) {
     assert.equal(existsSync(`${ROOT}${absent}`), false, `${absent} must not exist in this revision`);
   }
+  // Decided 2026-11-10: MIT, and the file must be the MIT text rather than an empty
+  // placeholder. A LICENSE that exists but says nothing would satisfy the manifest
+  // field while telling a consumer nothing.
+  assert.equal(existsSync(`${ROOT}LICENSE`), true, 'LICENSE must exist once a license is decided');
+  const text = readFileSync(`${ROOT}LICENSE`, 'utf8');
+  assert.match(text, /^MIT License\n/, 'LICENSE must be the MIT text');
+  assert.match(text, /Copyright \(c\) 2026 lbn2011/);
+  assert.doesNotMatch(text, /\bTODO\b|\bplaceholder\b/i);
 });
 
 test('the runtime module is self-contained and performs no I/O', () => {
