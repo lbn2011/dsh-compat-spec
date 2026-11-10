@@ -2,10 +2,12 @@
 
 Canonical repository: https://github.com/lbn2011/dsh-compat-platform
 
-Source commit: `355d6a5` (`host.sh` gained the declared `BR_SETENV` channel —
-`--setenv=NAME=value` only, validated and recorded; `core.manifest` refreshed to
-the new `host.sh` digest `08a12b13…`). Supersedes the `1aa87f1` pin, which was the
-policy change adding `config-check-batch` to the unit-prefix and unit-family lists.
+Source commit: `ce9f33b` (`policy.sh` gained the `trusted-extraction-hang` prefix and
+`trusted-extraction-hang-*` unit family for a new slice that measures the shipped
+80 s phase budget; `core.manifest` refreshed to the new `policy.sh` digest
+`f68270f4…`). Supersedes the `355d6a5` pin, which added the declared `BR_SETENV`
+channel; that pin in turn superseded `1aa87f1`, the `config-check-batch` policy
+change.
 
 Source directory: `scripts/bounded-runner/`
 

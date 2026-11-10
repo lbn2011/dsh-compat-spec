@@ -10,6 +10,17 @@
 > `control-diff.txt`/`selected-diff.txt`, peak 55922688 B / 16 pids. The numbers below
 > describe the earlier `1aa87f1` bytes and are not retracted or combined.
 
+## Later re-runs (2026-11-10)
+
+Two further core changes forced re-syncs. First `host.sh` gained the declared `BR_SETENV` channel
+(pin `355d6a5`, run `20261109T195203Z-spec-test-batch-1212535-4993`, 105/105). Then `policy.sh`
+gained the `trusted-extraction-hang` prefix and unit family (pin `ce9f33b`, run
+`20261110T110254Z-spec-test-batch-1364229-30041`): `acceptance_exit=0`, `terminal_ok=yes`,
+`hash_rc=0`, `write_failures=0`, `# tests 105 / # pass 105 / # fail 0`, empty
+`control-diff.txt` and `selected-diff.txt`, 9 control and 55 selected inputs, peak 37224448 B /
+16 pids. The figures in the body below describe the first `1aa87f1` bytes and are neither
+retracted nor combined.
+
 ## Result and evidence boundary
 
 **Actual result: 105/105 tests passed in one launched bounded service run; final acceptance exit 0.** This report reads existing artifacts; preparing it did not execute the runner, syntax checks or tests, install dependencies, change other files, or create a commit.

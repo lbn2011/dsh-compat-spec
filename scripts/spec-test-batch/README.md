@@ -12,7 +12,8 @@ The repository-local vendored core consists of [common.sh](<../bounded-runner/co
 [envelope.sh](<../bounded-runner/envelope.sh>), [tap.sh](<../bounded-runner/tap.sh>) and
 [core.manifest](<../bounded-runner/core.manifest>). These are copied without intentional
 byte changes from canonical platform commit
-`c8123de9f7bec62f9b09b5a542cd8fe383169a67`, directory
+`ce9f33b80bfd5f81a8d2eddb2707a1af634e2ed9` (the pin advances with each core change;
+`UPSTREAM.md` names the current one and the two it superseded), directory
 `projects/dsh-compat-platform/scripts/bounded-runner/`. Lead compared all six files
 byte-for-byte before the successful pilot. [UPSTREAM.md](../bounded-runner/UPSTREAM.md)
 records the pin and explicit maintenance procedure. The manifest retains
