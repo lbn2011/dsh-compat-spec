@@ -2,12 +2,7 @@
 
 Canonical repository: https://github.com/lbn2011/dsh-compat-platform
 
-Source commit: `ce9f33b` (`policy.sh` gained the `trusted-extraction-hang` prefix and
-`trusted-extraction-hang-*` unit family for a new slice that measures the shipped
-80 s phase budget; `core.manifest` refreshed to the new `policy.sh` digest
-`f68270f4…`). Supersedes the `355d6a5` pin, which added the declared `BR_SETENV`
-channel; that pin in turn superseded `1aa87f1`, the `config-check-batch` policy
-change.
+Source commit: `0ed946e` (`policy.sh` gained the `second-version-baseline` prefix and its unit family for a new slice that reads one published older release's interface from its own bytes; `core.manifest` refreshed to the new `policy.sh` digest `c42d382e…`). Supersedes the `ce9f33b` pin (`trusted-extraction-hang`), which superseded `355d6a5` (the declared `BR_SETENV` channel), which superseded `1aa87f1` (`config-check-batch`).
 
 Source directory: `scripts/bounded-runner/`
 
