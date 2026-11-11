@@ -2,7 +2,7 @@
 
 Canonical repository: https://github.com/lbn2011/dsh-compat-platform
 
-Source commit: `f40ab29` (`policy.sh` gained the `second-version-observe` prefix and its unit family for a slice that observes a published older release with the same adapter; `core.manifest` refreshed to the new `policy.sh` digest `8a70501a…`). Supersedes the `0ed946e` pin (`second-version-baseline`), which superseded the `ce9f33b` pin (`trusted-extraction-hang`), which superseded `355d6a5` (the declared `BR_SETENV` channel), which superseded `1aa87f1` (`config-check-batch`).
+Source commit: `a50a1ca` (`policy.sh` gained the `second-install-tree` prefix and its unit family for a slice that receipts a reconstructed installation tree of a published older release; `core.manifest` refreshed to the new `policy.sh` digest `9fd4fce1…`). Supersedes the `f40ab29` pin (`second-version-observe`), which superseded the `0ed946e` pin (`second-version-baseline`), which superseded the `ce9f33b` pin (`trusted-extraction-hang`), which superseded `355d6a5` (the declared `BR_SETENV` channel), which superseded `1aa87f1` (`config-check-batch`).
 
 Source directory: `scripts/bounded-runner/`
 
