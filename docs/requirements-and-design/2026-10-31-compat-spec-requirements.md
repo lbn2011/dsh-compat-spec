@@ -83,6 +83,8 @@ Acceptance requires a mapped source for each reused native behavior, at least on
 **[Pending]** Final protocol name, license, npm/package identity, initial supported host release and first pilot plugins.
 The package currently carries `private: true`, version `0.0.0`, and no license file. Recommendation: independently authored contracts, one pinned release first, then a second measured version. No license is inferred from upstream MIT metadata.
 
+> **Resolved 2026-11-10 (partly).** Decided: MIT (a `LICENSE` file with `Copyright (c) 2026 lbn2011`), package version `0.1.0-draft.1`, `private` cleared on explicit approval. Not decided, and still pending: the final protocol name, the npm scope/remote, and publication itself — nothing is published. The paragraph above is kept as the state and recommendation at the time it was written.
+
 ## 7. Repository layout
 
 `spec/` holds the normative prose and the generated JSON Schema. `conformance/`
